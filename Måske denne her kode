@@ -1,0 +1,58 @@
+from ev3dev2.motor import LargeMotor, OUTPUT_A, OUTPUT_B, MoveSteering
+from ev3dev2.sensor.lego import ColorSensor, TouchSensor
+from ev3dev2.sensor import INPUT_1, INPUT_2
+from ev3dev2.led import Leds
+from ev3dev2.button import Button
+import time
+
+# Initialize motors
+steering_drive = MoveSteering(OUTPUT_A, OUTPUT_B)
+
+# Initialize sensors
+color_sensor = ColorSensor(INPUT_1)
+touch_sensor = TouchSensor(INPUT_2)
+
+# Initialize LEDs
+leds = Leds()
+
+def follow_line_to_point():
+    """ Follows a line to a destination point using the color sensor. """
+    while not touch_sensor.is_pressed:  # Loop until the touch sensor is pressed
+        # Follow line logic (simplified), assuming black line on a white surface
+        if color_sensor.reflected_light_intensity < 30:  # Assuming a threshold for black line
+            steering_drive.on(0, 30)  # Move forward
+        else:
+            steering_drive.on(20, 30)  # Adjust direction slightly to follow the line
+        leds.set_color('LEFT', 'RED')  # Red light during motion
+        leds.set_color('RIGHT', 'RED')
+    steering_drive.stop()
+    leds.set_color('LEFT', 'GREEN')  # Green light when stopped
+    leds.set_color('RIGHT', 'GREEN')
+
+def return_to_start():
+    """ Returns the robot to the starting point following the same path. """
+    while touch_sensor.is_pressed:  # Loop until the touch sensor is released
+        time.sleep(0.5)  # Debounce delay
+    # Reverse movement logic can be similar to the forward logic
+    while not touch_sensor.is_pressed:
+        if color_sensor.reflected_light_intensity < 30:
+            steering_drive.on(0, -30)  # Move backward
+        else:
+            steering_drive.on(-20, -30)  # Adjust direction slightly to follow the line
+        leds.set_color('LEFT', 'RED')  # Red light during motion
+        leds.set_color('RIGHT', 'RED')
+    steering_drive.stop()
+    leds.set_color('LEFT', 'GREEN')
+    leds.set_color('RIGHT', 'GREEN')
+
+# Main logic
+def main():
+    button = Button()
+    while not button.any():  # Wait for any button press to start
+        if touch_sensor.is_pressed:
+            follow_line_to_point()
+        elif touch_sensor.is_pressed:
+            return_to_start()
+
+if __name__ == '__main__':
+    main()
