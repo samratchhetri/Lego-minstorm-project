@@ -1,0 +1,68 @@
+from ev3dev2.motor import MoveTank, OUTPUT_B, OUTPUT_C
+from ev3dev2.sensor import INPUT_1, INPUT_3
+from ev3dev2.sensor.lego import TouchSensor, ColorSensor
+from ev3dev2.led import Leds
+from time import sleep
+
+# Initialize motors
+tank = MoveTank(OUTPUT_B, OUTPUT_C)
+
+# Initialize sensors
+touch_sensor = TouchSensor(INPUT_1)
+color_sensor = ColorSensor(INPUT_3)
+
+# Initialize LEDs
+leds = Leds()
+
+def follow_line(speed=20):
+    # Follow the line until touch sensor is pressed
+    while not touch_sensor.is_pressed:
+        if color_sensor.color == ColorSensor.COLOR_RED:
+            leds.set_color('LEFT', 'RED')
+            leds.set_color('RIGHT', 'RED')
+        else:
+            leds.set_color('LEFT', 'GREEN')
+            leds.set_color('RIGHT', 'GREEN')
+        
+        # Adjust motor speed based on color sensor readings
+        if color_sensor.reflected_light_intensity < 30:  # Adjust this threshold as needed
+            tank.on(left_speed=speed, right_speed=speed*0.5)
+        else:
+            tank.on(left_speed=speed*0.5, right_speed=speed)
+
+def move_to_point(point):
+    # Move robot to a specific point
+    if point == 'A':
+        while color_sensor.color != ColorSensor.COLOR_BLACK:  # Assuming the course line is black
+            tank.on(left_speed=20, right_speed=20)
+    elif point == 'B':
+        while color_sensor.color != ColorSensor.COLOR_WHITE:  # Assuming the end of the course line is white
+            tank.on(left_speed=20, right_speed=20)
+    tank.off()
+
+# Main program
+try:
+    while True:
+        # Wait for touch sensor press
+        while not touch_sensor.is_pressed:
+            sleep(0.1)
+        
+        # Move from point A to point B
+        follow_line()
+        move_to_point('B')
+        leds.set_color('LEFT', 'GREEN')
+        leds.set_color('RIGHT', 'GREEN')
+        
+        # Wait for touch sensor press again
+        while not touch_sensor.is_pressed:
+            sleep(0.1)
+        
+        # Return from point B to point A
+        follow_line()
+        move_to_point('A')
+        leds.set_color('LEFT', 'RED')
+        leds.set_color('RIGHT', 'RED')
+
+except KeyboardInterrupt:
+    tank.off()
+    leds.all_off()
