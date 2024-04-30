@@ -1,0 +1,27 @@
+# Define positions
+pointA = p[0.5, -0.3, 0.1, 2.2, -2.2, 0.0]  # Example coordinates (x, y, z, rx, ry, rz)
+pointB = p[0.8, -0.3, 0.1, 2.2, -2.2, 0.0]  # Modify these values based on actual coordinates
+
+# Function to move to a specified pose
+def move_to_pose(pose):
+    movel(pose, a=1.2, v=0.25)  # 'movel' for linear movement: adjust a (acceleration) and v (velocity) as needed
+
+# Function to perform the pick operation at Point A
+def pick():
+    move_to_pose(pointA)  # Move to the pick position
+    # Code to close gripper or activate suction
+    set_digital_out(0, True)  # Example: Activate output 0 to close gripper
+
+# Function to perform the place operation at Point B
+def place():
+    move_to_pose(pointB)  # Move to the place position
+    # Code to open gripper or deactivate suction
+    set_digital_out(0, False)  # Example: Deactivate output 0 to open gripper
+
+# Main program execution
+def main():
+    pick()  # Execute pick operation
+    place()  # Execute place operation
+
+# Start the main program
+main()
